@@ -6,32 +6,33 @@ import Confetti from "react-confetti";
 import "./App.css";
 
 export default function App() {
-  let fastesttime = localStorage.getItem("fastest");
-  console.log(fastesttime);
   const [count, setCount] = useState(0);
   const [dice, setDice] = React.useState(allNewDice());
   const [tenzies, setTenzies] = React.useState(false);
   const [startTime, setTime] = useState(Date.now());
-  const [fastest, setfastest] = useState(fastesttime || 0);
-  let time = useRef();
+  const [timer,setTimer] = useState(0)
+  const [fastest, setfastest] = useState(localStorage.getItem("fastest") || 0);
+
   React.useEffect(() => {
     const allHeld = dice.every((die) => die.isHeld);
     const firstValue = dice[0].value;
     const allSameValue = dice.every((die) => die.value === firstValue);
+    if(!allHeld && !allSameValue){
+      setTimer(0)
+    }
     if (allHeld && allSameValue) {
       setTenzies(true);
       let latest = Date.now();
-      time.current = Math.floor((latest - startTime) / 1000);
-      if (fastest == 0) {
-        localStorage.setItem("fastest", time);
-      }
-      if (time < fastest) {
+      let time = Math.floor((latest - startTime) / 1000);
+      setTimer(time)
+      if (time < fastest || fastest == 0) {
         setfastest(time);
-        console.log("called");
         localStorage.setItem("fastest", time);
       }
+      setTime(Date.now())
     }
   }, [dice]);
+
   function generateNewDie() {
     return {
       value: Math.ceil(Math.random() * 6),
@@ -73,10 +74,10 @@ export default function App() {
 
   const diceElements = dice.map((die) => (
     <Die
-      key={die.id}
-      value={die.value}
-      isHeld={die.isHeld}
-      holdDice={() => holdDice(die.id)}
+    key={die.id}
+    value={die.value}
+    isHeld={die.isHeld}
+    holdDice={() => holdDice(die.id)}
     />
   ));
 
@@ -86,7 +87,7 @@ export default function App() {
       <h1 className="title">Tenzies</h1>
       <div className="time-section">
         <span className="floating-watch">
-          Time : {tenzies ? time.current : 0} sec{" "}
+          Time : {tenzies ? timer : 0} sec
         </span>
         <span className="floating-timer">Fastest : {fastest} sec </span>
       </div>
